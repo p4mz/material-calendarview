@@ -19,7 +19,6 @@ import java.util.List;
 import static com.prolificinteractive.materialcalendarview.MaterialCalendarView.SHOW_DEFAULTS;
 import static com.prolificinteractive.materialcalendarview.MaterialCalendarView.showOtherMonths;
 import static java.util.Calendar.DATE;
-import static java.util.Calendar.DAY_OF_WEEK;
 
 abstract class CalendarPagerView extends ViewGroup implements View.OnClickListener {
 
@@ -36,6 +35,10 @@ abstract class CalendarPagerView extends ViewGroup implements View.OnClickListen
     private CalendarDay minDate = null;
     private CalendarDay maxDate = null;
     private int firstDayOfWeek;
+    private boolean enableWeekDivider;
+    private boolean enableWeekOfMonthDivider;
+    private int dividerColor = 0;
+    private int dividerSize = 0;
 
     private final Collection<DayView> dayViews = new ArrayList<>();
 
@@ -156,6 +159,26 @@ abstract class CalendarPagerView extends ViewGroup implements View.OnClickListen
         updateUi();
     }
 
+    public void setEnableWeekDivider(boolean enableWeekDivider) {
+        this.enableWeekDivider = enableWeekDivider;
+        updateUi();
+    }
+
+    public void setEnableWeekOfMonthDivider(boolean enable) {
+        this.enableWeekOfMonthDivider = enable;
+        updateUi();
+    }
+
+    public void setDividerColor(int colorId) {
+        this.dividerColor = colorId;
+        updateUi();
+    }
+
+    public void setDividerSize(int offsetSize) {
+        this.dividerSize = offsetSize;
+        updateUi();
+    }
+
     public void setSelectedDates(Collection<CalendarDay> dates) {
         for (DayView dayView : dayViews) {
             CalendarDay day = dayView.getDate();
@@ -223,10 +246,10 @@ abstract class CalendarPagerView extends ViewGroup implements View.OnClickListen
 
         //The spec width should be a correct multiple
         final int measureTileWidth = specWidthSize / DEFAULT_DAYS_IN_WEEK;
-        final int measureTileHeight = specHeightSize / getRows();
+        final int measureTileHeight = (specHeightSize / getRows());
 
         //Just use the spec sizes
-        setMeasuredDimension(specWidthSize, specHeightSize);
+        setMeasuredDimension(specWidthSize, specHeightSize + (getDividerHeight() * (getRows() - (enableWeekDivider ? 1 : 2))));
 
         int count = getChildCount();
 
@@ -247,8 +270,17 @@ abstract class CalendarPagerView extends ViewGroup implements View.OnClickListen
         }
     }
 
+    private int getDividerHeight() {
+        if (enableWeekDivider || enableWeekOfMonthDivider) {
+            return dividerSize;
+        } else {
+            return 0;
+        }
+    }
+
     /**
      * Return the number of rows to display per page
+     *
      * @return
      */
     protected abstract int getRows();
@@ -265,6 +297,9 @@ abstract class CalendarPagerView extends ViewGroup implements View.OnClickListen
         int childTop = 0;
         int childLeft = parentLeft;
 
+        List<View> dividers = new ArrayList<>();
+        int lineHeight = dividerSize;
+
         for (int i = 0; i < count; i++) {
             final View child = getChildAt(i);
 
@@ -279,8 +314,28 @@ abstract class CalendarPagerView extends ViewGroup implements View.OnClickListen
             if (i % DEFAULT_DAYS_IN_WEEK == (DEFAULT_DAYS_IN_WEEK - 1)) {
                 childLeft = parentLeft;
                 childTop += height;
+                // add week divider
+                if (i <= DEFAULT_DAYS_IN_WEEK && enableWeekDivider) {
+                    View view = new View(getContext());
+                    view.setBackgroundColor(dividerColor);
+                    view.layout(0, childTop, getMeasuredWidth(), childTop + lineHeight);
+                    childTop += lineHeight;
+                    dividers.add(view);
+                }
+                // add week of month divider
+                if (i > DEFAULT_DAYS_IN_WEEK && enableWeekOfMonthDivider) {
+                    View view = new View(getContext());
+                    view.setBackgroundColor(dividerColor);
+                    view.layout(0, childTop, getMeasuredWidth(), childTop + lineHeight);
+                    childTop += lineHeight;
+                    dividers.add(view);
+                }
             }
-
+        }
+        if (!dividers.isEmpty()) {
+            for (View view : dividers) {
+                addView(view);
+            }
         }
     }
 

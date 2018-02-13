@@ -58,6 +58,10 @@
             <enum name="vertical" value="0" />
             <enum name="horizontal" value="1" />
         </attr>
+        <attr name="mcv_enableWeekDivider" format="boolean" />
+        <attr name="mcv_enableWeekOfMonthDivider" format="boolean" />
+        <attr name="mcv_dividerColor" format="color" />
+        <attr name="mcv_dividerSize" format="dimension" />
     </declare-styleable>
 
 </resources>

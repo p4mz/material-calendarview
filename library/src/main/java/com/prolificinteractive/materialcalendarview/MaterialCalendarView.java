@@ -9,9 +9,12 @@ import android.os.Build;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.ArrayRes;
+import android.support.annotation.ColorRes;
+import android.support.annotation.DimenRes;
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
 import android.util.SparseArray;
@@ -179,6 +182,11 @@ public class MaterialCalendarView extends ViewGroup {
     private CalendarDay currentMonth;
     private LinearLayout topbar;
     private CalendarMode calendarMode;
+    private boolean enableWeekDivider;
+    private boolean enableWeekOfMonthDivider;
+    private int dividerSize = 0;
+    private int dividerColor = 0;
+
     /**
      * Used for the dynamic calendar height.
      */
@@ -243,7 +251,6 @@ public class MaterialCalendarView extends ViewGroup {
 
     public MaterialCalendarView(Context context, AttributeSet attrs) {
         super(context, attrs);
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             //If we're on good Android versions, turn off clipping for cool effects
             setClipToPadding(false);
@@ -370,11 +377,14 @@ public class MaterialCalendarView extends ViewGroup {
                     R.styleable.MaterialCalendarView_mcv_showOtherDates,
                     SHOW_DEFAULTS
             ));
-
             setAllowClickDaysOutsideCurrentMonth(a.getBoolean(
                     R.styleable.MaterialCalendarView_mcv_allowClickDaysOutsideCurrentMonth,
                     true
             ));
+            setEnableWeekDivider(a.getBoolean(R.styleable.MaterialCalendarView_mcv_enableWeekDivider, false));
+            setEnableWeekOfMonthDivider(a.getBoolean(R.styleable.MaterialCalendarView_mcv_enableWeekOfMonthDivider, true));
+            setDividerSize(a.getDimensionPixelOffset(R.styleable.MaterialCalendarView_mcv_dividerSize, getResources().getDimensionPixelOffset(R.dimen.mcv_border_size)));
+            setDividerColor(a.getColor(R.styleable.MaterialCalendarView_mcv_dividerColor, ContextCompat.getColor(getContext(), R.color.mcv_border_color)));
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -383,6 +393,10 @@ public class MaterialCalendarView extends ViewGroup {
 
         // Adapter is created while parsing the TypedArray attrs, so setup has to happen after
         adapter.setTitleFormatter(DEFAULT_TITLE_FORMATTER);
+        adapter.setEnableWeekDivider(isEnableWeekDivider());
+        adapter.setEnableWeekOfMonthDivider(isEnableWeekOfMonthDivider());
+        adapter.setDividerColor(getDividerColor());
+        adapter.setDividerSize(getDividerSize());
         setupChildren();
 
         currentMonth = CalendarDay.today();
@@ -1083,6 +1097,8 @@ public class MaterialCalendarView extends ViewGroup {
         ss.dynamicHeightEnabled = mDynamicHeightEnabled;
         ss.currentMonth = currentMonth;
         ss.cacheCurrentPosition = state.cacheCurrentPosition;
+        ss.enableWeekDivider = state.enableWeekDivider;
+        ss.enableWeekOfMonthDivider = state.enableWeekOfMonthDivider;
         return ss;
     }
 
@@ -1096,6 +1112,8 @@ public class MaterialCalendarView extends ViewGroup {
                 .setMinimumDate(ss.minDate)
                 .setMaximumDate(ss.maxDate)
                 .isCacheCalendarPositionEnabled(ss.cacheCurrentPosition)
+                .setEnableWeekDivider(ss.enableWeekDivider)
+                .setEnableWeekOfMonthDivider(ss.enableWeekOfMonthDivider)
                 .commit();
 
         setSelectionColor(ss.color);
@@ -1158,6 +1176,8 @@ public class MaterialCalendarView extends ViewGroup {
         CalendarMode calendarMode = CalendarMode.MONTHS;
         CalendarDay currentMonth = null;
         boolean cacheCurrentPosition;
+        boolean enableWeekDivider;
+        boolean enableWeekOfMonthDivider;
 
         SavedState(Parcelable superState) {
             super(superState);
@@ -1184,6 +1204,8 @@ public class MaterialCalendarView extends ViewGroup {
             out.writeInt(calendarMode == CalendarMode.WEEKS ? 1 : 0);
             out.writeParcelable(currentMonth, 0);
             out.writeByte((byte) (cacheCurrentPosition ? 1 : 0));
+            out.writeByte((byte) (enableWeekDivider ? 1 : 0));
+            out.writeByte((byte) (enableWeekOfMonthDivider ? 1 : 0));
         }
 
         public static final Parcelable.Creator<SavedState> CREATOR
@@ -1218,6 +1240,8 @@ public class MaterialCalendarView extends ViewGroup {
             calendarMode = in.readInt() == 1 ? CalendarMode.WEEKS : CalendarMode.MONTHS;
             currentMonth = in.readParcelable(loader);
             cacheCurrentPosition = in.readByte() != 0;
+            enableWeekDivider = in.readByte() == 1;
+            enableWeekOfMonthDivider = in.readByte() == 1;
         }
     }
 
@@ -1502,6 +1526,70 @@ public class MaterialCalendarView extends ViewGroup {
     }
 
     /**
+     * show divider between weekdays and day of month
+     *
+     * @param enable hide/show divider
+     */
+    public void setEnableWeekDivider(boolean enable) {
+        this.enableWeekDivider = enable;
+    }
+
+    /**
+     * show divider between weekdays and day of month
+     */
+    public boolean isEnableWeekDivider() {
+        return this.enableWeekDivider;
+    }
+
+    /**
+     * show divider between each weeks in month
+     *
+     * @param enable hide/show divider
+     */
+    public void setEnableWeekOfMonthDivider(boolean enable) {
+        this.enableWeekOfMonthDivider = enable;
+    }
+
+    /**
+     * show divider between each weeks in month
+     */
+    public boolean isEnableWeekOfMonthDivider() {
+        return this.enableWeekOfMonthDivider;
+    }
+
+    /**
+     * set divider size
+     *
+     * @param size set dimension offset size
+     */
+    public void setDividerSize(int size) {
+        this.dividerSize = size;
+    }
+
+    /**
+     * get divider size
+     */
+    public int getDividerSize() {
+        return this.dividerSize;
+    }
+
+    /**
+     * set divider color
+     *
+     * @param colorId set dimension resource id
+     */
+    public void setDividerColor(int colorId) {
+        this.dividerColor = colorId;
+    }
+
+    /**
+     * get divider color
+     */
+    public int getDividerColor() {
+        return this.dividerColor;
+    }
+
+    /**
      * Called by the adapter for cases when changes in state result in dates being unselected
      *
      * @param date date that should be de-selected
@@ -1619,7 +1707,7 @@ public class MaterialCalendarView extends ViewGroup {
 
         //Calculate our size based off our measured tile size
         int measuredWidth = measureTileWidth * DEFAULT_DAYS_IN_WEEK;
-        int measuredHeight = measureTileHeight * viewTileHeight;
+        int measuredHeight = measureTileHeight * viewTileHeight + getTotalDividerHeight(viewTileHeight);
 
         //Put padding back in from when we took it away
         measuredWidth += getPaddingLeft() + getPaddingRight();
@@ -1645,12 +1733,24 @@ public class MaterialCalendarView extends ViewGroup {
             );
 
             int childHeightMeasureSpec = MeasureSpec.makeMeasureSpec(
-                    p.height * measureTileHeight,
+                    p.height * (measureTileHeight),
                     MeasureSpec.EXACTLY
             );
 
             child.measure(childWidthMeasureSpec, childHeightMeasureSpec);
         }
+    }
+
+    private int getTotalDividerHeight(int rows) {
+        if (!isEnableWeekDivider() && !isEnableWeekOfMonthDivider()) {
+            return 0;
+        }
+        if (!isEnableWeekDivider()) {
+            rows -= 1;
+        }
+        return (getDividerSize() * (isDynamicHeightEnabled()
+                ? rows - 2
+                : rows));
     }
 
     private int getWeekCountBasedOnMode() {
@@ -1812,6 +1912,10 @@ public class MaterialCalendarView extends ViewGroup {
         private final CalendarDay minDate;
         private final CalendarDay maxDate;
         private final boolean cacheCurrentPosition;
+        private final boolean enableWeekDivider;
+        private final boolean enableWeekOfMonthDivider;
+        private final int dividerSize;
+        private final int dividerColor;
 
         private State(final StateBuilder builder) {
             calendarMode = builder.calendarMode;
@@ -1819,6 +1923,10 @@ public class MaterialCalendarView extends ViewGroup {
             minDate = builder.minDate;
             maxDate = builder.maxDate;
             cacheCurrentPosition = builder.cacheCurrentPosition;
+            enableWeekDivider = builder.enableWeekDivider;
+            enableWeekOfMonthDivider = builder.enableWeekOfMonthDivider;
+            dividerColor = builder.dividerColor;
+            dividerSize = builder.dividerSize;
         }
 
         /**
@@ -1836,6 +1944,10 @@ public class MaterialCalendarView extends ViewGroup {
         private boolean cacheCurrentPosition = false;
         private CalendarDay minDate = null;
         private CalendarDay maxDate = null;
+        private boolean enableWeekDivider = false;
+        private boolean enableWeekOfMonthDivider = false;
+        private int dividerSize = 0;
+        private int dividerColor = 0;
 
         public StateBuilder() {
         }
@@ -1846,6 +1958,10 @@ public class MaterialCalendarView extends ViewGroup {
             minDate = state.minDate;
             maxDate = state.maxDate;
             cacheCurrentPosition = state.cacheCurrentPosition;
+            enableWeekDivider = state.enableWeekDivider;
+            enableWeekOfMonthDivider = state.enableWeekOfMonthDivider;
+            dividerColor = state.dividerColor;
+            dividerSize = state.dividerSize;
         }
 
         /**
@@ -1923,6 +2039,38 @@ public class MaterialCalendarView extends ViewGroup {
         }
 
         /**
+         * @param enable show/hide divider between weekdays and month
+         */
+        public StateBuilder setEnableWeekDivider(boolean enable) {
+            enableWeekDivider = enable;
+            return this;
+        }
+
+        /**
+         * @param enable show/hide divider between each weeks in month
+         */
+        public StateBuilder setEnableWeekOfMonthDivider(boolean enable) {
+            enableWeekOfMonthDivider = enable;
+            return this;
+        }
+
+        /**
+         * @param size set divider offset size
+         */
+        public StateBuilder setDividerSize(int size) {
+            dividerSize = size;
+            return this;
+        }
+
+        /**
+         * @param color set divider color
+         */
+        public StateBuilder setDividerColor(int color) {
+            dividerColor = color;
+            return this;
+        }
+
+        /**
          * Use this method to enable saving the current position when switching
          * between week and month mode. By default, the calendar update to the latest selected date
          * or the current date. When set to true, the view will used the month that the calendar is
@@ -1980,6 +2128,10 @@ public class MaterialCalendarView extends ViewGroup {
         firstDayOfWeek = state.firstDayOfWeek;
         minDate = state.minDate;
         maxDate = state.maxDate;
+        enableWeekDivider = state.enableWeekDivider;
+        enableWeekOfMonthDivider = state.enableWeekOfMonthDivider;
+        dividerColor = state.dividerColor == 0 ? ContextCompat.getColor(getContext(), R.color.mcv_border_color) : state.dividerColor;
+        dividerSize = state.dividerSize == 0 ? getResources().getDimensionPixelSize(R.dimen.mcv_border_size) : state.dividerSize;
 
         // Recreate adapter
         final CalendarPagerAdapter<?> newAdapter;
@@ -1998,9 +2150,12 @@ public class MaterialCalendarView extends ViewGroup {
         } else {
             adapter = adapter.migrateStateAndReturn(newAdapter);
         }
+        adapter.setEnableWeekDivider(enableWeekDivider);
+        adapter.setEnableWeekOfMonthDivider(enableWeekOfMonthDivider);
+        adapter.setDividerColor(dividerColor);
+        adapter.setDividerSize(dividerSize);
         pager.setAdapter(adapter);
         setRangeDates(minDate, maxDate);
-
         // Reset height params after mode change
         pager.setLayoutParams(new LayoutParams(calendarMode.visibleWeeksCount + DAY_NAMES_ROW));
 

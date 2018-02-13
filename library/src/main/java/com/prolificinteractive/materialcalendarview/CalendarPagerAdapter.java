@@ -1,5 +1,7 @@
 package com.prolificinteractive.materialcalendarview;
 
+import android.support.annotation.ColorRes;
+import android.support.annotation.DimenRes;
 import android.support.annotation.NonNull;
 import android.support.v4.view.PagerAdapter;
 import android.view.View;
@@ -40,6 +42,10 @@ abstract class CalendarPagerAdapter<V extends CalendarPagerView> extends PagerAd
     private List<DayViewDecorator> decorators = new ArrayList<>();
     private List<DecoratorResult> decoratorResults = null;
     private boolean selectionEnabled = true;
+    private boolean enableWeekDivider = false;
+    private boolean enableWeekOfMonthDivider = false;
+    private int dividerSize = 0;
+    private int dividerColor = 0;
 
     CalendarPagerAdapter(MaterialCalendarView mcv) {
         this.mcv = mcv;
@@ -92,6 +98,10 @@ abstract class CalendarPagerAdapter<V extends CalendarPagerView> extends PagerAd
         newAdapter.decorators = decorators;
         newAdapter.decoratorResults = decoratorResults;
         newAdapter.selectionEnabled = selectionEnabled;
+        newAdapter.enableWeekDivider = enableWeekDivider;
+        newAdapter.enableWeekOfMonthDivider = enableWeekOfMonthDivider;
+        newAdapter.dividerColor = dividerColor;
+        newAdapter.dividerSize = dividerSize;
         return newAdapter;
     }
 
@@ -106,6 +116,22 @@ abstract class CalendarPagerAdapter<V extends CalendarPagerView> extends PagerAd
             return getCount() - 1;
         }
         return rangeIndex.indexOf(day);
+    }
+
+    public boolean isEnableWeekDivider() {
+        return this.enableWeekDivider;
+    }
+
+    public boolean isEnableWeekOfMonthDivider() {
+        return this.enableWeekOfMonthDivider;
+    }
+
+    public float getDividerSize() {
+        return this.dividerSize;
+    }
+
+    public int getDividerColor() {
+        return this.dividerColor;
     }
 
     protected abstract V createView(int position);
@@ -155,6 +181,10 @@ abstract class CalendarPagerAdapter<V extends CalendarPagerView> extends PagerAd
         pagerView.setMinimumDate(minDate);
         pagerView.setMaximumDate(maxDate);
         pagerView.setSelectedDates(selectedDates);
+        pagerView.setEnableWeekDivider(enableWeekDivider);
+        pagerView.setEnableWeekOfMonthDivider(enableWeekOfMonthDivider);
+        pagerView.setDividerColor(dividerColor);
+        pagerView.setDividerSize(dividerSize);
 
         container.addView(pagerView);
         currentViews.add(pagerView);
@@ -260,6 +290,22 @@ abstract class CalendarPagerAdapter<V extends CalendarPagerView> extends PagerAd
 
         notifyDataSetChanged();
         invalidateSelectedDates();
+    }
+
+    public void setEnableWeekDivider(boolean enable) {
+        this.enableWeekDivider = enable;
+    }
+
+    public void setEnableWeekOfMonthDivider(boolean enable) {
+        this.enableWeekOfMonthDivider = enable;
+    }
+
+    public void setDividerSize(int size) {
+        this.dividerSize = size;
+    }
+
+    public void setDividerColor(@ColorRes int colorId) {
+        this.dividerColor = colorId;
     }
 
     public DateRangeIndex getRangeIndex() {
