@@ -382,7 +382,7 @@ public class MaterialCalendarView extends ViewGroup {
                     true
             ));
             setEnableWeekDivider(a.getBoolean(R.styleable.MaterialCalendarView_mcv_enableWeekDivider, false));
-            setEnableWeekOfMonthDivider(a.getBoolean(R.styleable.MaterialCalendarView_mcv_enableWeekOfMonthDivider, true));
+            setEnableWeekOfMonthDivider(a.getBoolean(R.styleable.MaterialCalendarView_mcv_enableWeekOfMonthDivider, false));
             setDividerSize(a.getDimensionPixelOffset(R.styleable.MaterialCalendarView_mcv_dividerSize, getResources().getDimensionPixelOffset(R.dimen.mcv_border_size)));
             setDividerColor(a.getColor(R.styleable.MaterialCalendarView_mcv_dividerColor, ContextCompat.getColor(getContext(), R.color.mcv_border_color)));
         } catch (Exception e) {
@@ -2128,10 +2128,6 @@ public class MaterialCalendarView extends ViewGroup {
         firstDayOfWeek = state.firstDayOfWeek;
         minDate = state.minDate;
         maxDate = state.maxDate;
-        enableWeekDivider = state.enableWeekDivider;
-        enableWeekOfMonthDivider = state.enableWeekOfMonthDivider;
-        dividerColor = state.dividerColor == 0 ? ContextCompat.getColor(getContext(), R.color.mcv_border_color) : state.dividerColor;
-        dividerSize = state.dividerSize == 0 ? getResources().getDimensionPixelSize(R.dimen.mcv_border_size) : state.dividerSize;
 
         // Recreate adapter
         final CalendarPagerAdapter<?> newAdapter;
@@ -2150,10 +2146,6 @@ public class MaterialCalendarView extends ViewGroup {
         } else {
             adapter = adapter.migrateStateAndReturn(newAdapter);
         }
-        adapter.setEnableWeekDivider(enableWeekDivider);
-        adapter.setEnableWeekOfMonthDivider(enableWeekOfMonthDivider);
-        adapter.setDividerColor(dividerColor);
-        adapter.setDividerSize(dividerSize);
         pager.setAdapter(adapter);
         setRangeDates(minDate, maxDate);
         // Reset height params after mode change
