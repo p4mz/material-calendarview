@@ -1,5 +1,7 @@
 <img src="/images/hero.png"/>
 
+Add divider setting
+
 Material Calendar View 
 ======================
 [![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-Material%20Calendar%20View-blue.svg?style=flat)](https://android-arsenal.com/details/1/1531) [![Maven Central](https://img.shields.io/maven-central/v/com.prolificinteractive/material-calendarview.svg?maxAge=2592000)](http://search.maven.org/#search%7Cga%7C1%7Ca%3A%22material-calendarview%22) [![Travis branch](https://img.shields.io/travis/prolificinteractive/material-calendarview.svg?maxAge=2592000)](https://travis-ci.org/prolificinteractive/material-calendarview)
