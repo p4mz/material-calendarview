@@ -1749,7 +1749,7 @@ public class MaterialCalendarView extends ViewGroup {
             rows -= 1;
         }
         return (getDividerSize() * (isDynamicHeightEnabled()
-                ? rows - 2
+                ? rows - 1
                 : rows));
     }
 
