@@ -62,6 +62,8 @@
         <attr name="mcv_enableWeekOfMonthDivider" format="boolean" />
         <attr name="mcv_dividerColor" format="color" />
         <attr name="mcv_dividerSize" format="dimension" />
+        <!-- day view and weekday view font path are required to add in TextAppearance -->
+        <attr name="mcv_textAppearanceFontPath" format="string" />
     </declare-styleable>
 
 </resources>

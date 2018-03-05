@@ -4,9 +4,11 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.ColorStateList;
+import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.RippleDrawable;
 import android.graphics.drawable.ShapeDrawable;
@@ -16,6 +18,8 @@ import android.os.Build;
 import android.support.annotation.NonNull;
 import android.text.SpannableString;
 import android.text.Spanned;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.CheckedTextView;
@@ -168,6 +172,34 @@ class DayView extends CheckedTextView {
 
     private final Rect tempRect = new Rect();
     private final Rect circleDrawableRect = new Rect();
+
+    @Override
+    public void setTextAppearance(int resId) {
+        super.setTextAppearance(resId);
+        applyCustomTypeface(resId);
+    }
+
+    @Override
+    public void setTextAppearance(Context context, int resId) {
+        super.setTextAppearance(context, resId);
+        applyCustomTypeface(resId);
+
+    }
+
+    private void applyCustomTypeface(int resId) {
+        TypedArray appearance = getContext().obtainStyledAttributes(resId, R.styleable.MaterialCalendarView);
+        if(appearance != null) {
+            String fontPath = appearance.getString(R.styleable.MaterialCalendarView_mcv_textAppearanceFontPath);
+            if(!TextUtils.isEmpty(fontPath)) {
+                try {
+                    setTypeface(Typeface.createFromAsset(getResources().getAssets(), fontPath));
+                }
+                catch (Exception ex) {
+                    Log.e("DayView", "cannot apply custom font path", ex);
+                }
+            }
+        }
+    }
 
     @Override
     protected void onDraw(@NonNull Canvas canvas) {
